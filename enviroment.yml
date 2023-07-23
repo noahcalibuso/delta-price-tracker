@@ -1,0 +1,4 @@
+name: scraping-env
+dependencies:
+  - python=3.9
+  - scrapy
