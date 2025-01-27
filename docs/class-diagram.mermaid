@@ -1,0 +1,79 @@
+classDiagram
+    %% Domain Models
+    class Flight {
+        +UUID id
+        +String flightNumber
+        +String origin
+        +String destination
+        +DateTime departureDate
+        +Decimal currentPrice
+        +DateTime lastCheckedAt
+        +DateTime nextCheckAt
+        +Boolean isActive
+        +checkPrice()
+        +updatePrice(Decimal price)
+    }
+
+    class User {
+        +UUID id
+        +String email
+        +Boolean isActive
+        +JsonB notificationPreferences
+        +DateTime createdAt
+        +addFlightTracker(Flight flight)
+        +updatePreferences(JsonB prefs)
+    }
+
+    class FlightTracker {
+        +UUID id
+        +UUID userId
+        +UUID flightId
+        +Decimal priceThreshold
+        +Decimal initialPrice
+        +Boolean isActive
+        +DateTime createdAt
+        +checkPriceThreshold(Decimal newPrice)
+        +deactivate()
+    }
+
+    %% Services
+    class PriceMonitoringService {
+        -FlightAPI flightApi
+        -NotificationService notificationSvc
+        -Repository repository
+        +checkPrices(List~Flight~ flights)
+        +processPrice(Flight flight, Decimal price)
+        -handlePriceDrop(Flight flight, Decimal price)
+    }
+
+    class NotificationService {
+        -EmailClient emailClient
+        -Repository repository
+        +sendPriceAlert(User user, Flight flight, Decimal price)
+        +sendSystemNotification(User user, String message)
+        -formatEmail(Template template, Map data)
+    }
+
+    class FlightAPI {
+        -HttpClient client
+        -Cache cache
+        +getFlightPrice(Flight flight)
+        +searchFlights(String origin, String dest, Date date)
+        -handleRateLimit()
+    }
+
+    %% Repositories
+    class Repository {
+        <<interface>>
+        +save(Entity entity)
+        +findById(UUID id)
+        +update(Entity entity)
+        +delete(UUID id)
+    }
+
+    %% Relationships
+    User "1" -- "*" FlightTracker
+    Flight "1" -- "*" FlightTracker
+    PriceMonitoringService -- FlightAPI
+    PriceMonitoringService -- NotificationService
+    PriceMonitoringService -- Repository
